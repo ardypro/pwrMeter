@@ -32,3 +32,5 @@ if (meter.available()) //检查是否有数据进入缓冲区
 本软件的使用遵从免费、开源协议。 
 
 Ardypro (jzopen#yeah.net)
+
+2013-12-03
