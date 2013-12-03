@@ -1,5 +1,5 @@
-pwrMeter
-========
+pwrMeter (Power Meter)
+======================
 
 485电量模块的Arduino类库 
 
@@ -14,7 +14,7 @@ pwrMeter
 
 pwrMeter meter;
 
-meter.begin(&Serial,4800);
+meter.begin(&Serial,4800);	//设置与485通信的串口以及波特率
 
 if (meter.available()) //检查是否有数据进入缓冲区
 {

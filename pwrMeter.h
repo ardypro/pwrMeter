@@ -1,6 +1,47 @@
 #ifndef PWRMETER_H
 #define PWRMETER_H
 
+/*
+  ModbusReaderMethodTwo - example from LT/JSY C code
+
+  ModbusReaderMethodTwo is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  ModbusReaderMethodTwo is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with ModbusReaderMethodTwo.  If not, see <http://www.gnu.org/licenses/>.
+
+  Edited by Lozoo 932871121<linzaiz@qq.com> on 2013.11.22
+  Copyright © 2009-2013 Lozoo 932871121<linzaiz@qq.com>
+*/
+
+/*
+    Modified by Jack Zhong (jzopen#yeah.net)
+
+    Instruction:
+    ------------
+
+    pwrMeter meter;
+
+    meter.begin(&Serial,4800);      //设置与485通信的串口以及波特率
+
+    if (meter.available())         //检查是否有数据进入缓冲区
+    {
+        if (meter.readData(功率，电流，电量，功率因数，电压))
+        {
+            Serial.print(电压);
+            ...
+        }
+        delay(2000);              //延时，等待下一个操作
+    }   
+*/
+
 //如果跟485通信的是软串口，就需要屏蔽下面这句
 //#define HARDSERIAL
 
@@ -38,7 +79,7 @@ private:
 #endif
 
     unsigned char Tx_Buffer[TX_BUFFER_SIZE];
-    unsigned char RX_Buffer[MAX_RESPONSE_LENGTH ];
+    unsigned char RX_Buffer[MAX_RESPONSE_LENGTH];
 
     struct commdata
     {
