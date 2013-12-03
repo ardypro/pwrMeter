@@ -37,6 +37,9 @@ int pwrMeter::receive_response(unsigned char *received_string)
         if(i++ > TIMEOUT)
         {
             UART->println("receive timeout.");
+#ifdef DEBUGGING
+            Serial.println("receive timeout.");
+#endif
         }
         return bytes_received;
     }
@@ -151,7 +154,9 @@ int pwrMeter::read_data(void)
     Tx_Buffer[7]=crcnow.byte[0];
 
     ret= send_query(Tx_Buffer, TX_BUFFER_SIZE);
-
+#ifdef DEBUGGING
+    Serial.println("has incoming data");
+#endif
     return ret;
 }
 
@@ -185,13 +190,18 @@ bool pwrMeter::readData(int &watt, float &amp, float &kwh, float &pf, float &vol
     }
 }
 
+#ifdef HARDSERIAL
 void pwrMeter::begin(HardwareSerial* serial, int baud)
 {
     UART=serial;
     UART->begin(baud);
 }
-
-void pwrMeter::begin()
+#else
+void pwrMeter::begin(SoftwareSerial* serial, int baud)
 {
-    UART=&Serial;
+    UART=serial;
+    UART->begin(baud);
 }
+#endif
+
+

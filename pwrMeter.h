@@ -1,6 +1,14 @@
 #ifndef PWRMETER_H
 #define PWRMETER_H
+
+//如果跟485通信的是软串口，就需要屏蔽下面这句
+//#define HARDSERIAL
+
+#ifdef HARDSERIAL
 #include "HardwareSerial.h"
+#else
+#include "SoftwareSerial.h"
+#endif
 
 #define TX_BUFFER_SIZE 8
 #define Read_ID 1
@@ -14,14 +22,20 @@ class pwrMeter
 public:
     pwrMeter();
     virtual ~pwrMeter();
-
+#ifdef HARDSERIAL
     void begin(HardwareSerial* serial, int baud=4800);
-    void begin();
+#else
+    void begin(SoftwareSerial* serial, int baud=4800);
+#endif
     int available();
     bool readData(int &watt, float &amp, float &kwh, float &pf, float &voltage);
 protected:
 private:
+#ifdef HARDSERIAL
     HardwareSerial* UART;
+#else
+    SoftwareSerial* UART;
+#endif
 
     unsigned char Tx_Buffer[TX_BUFFER_SIZE];
     unsigned char RX_Buffer[MAX_RESPONSE_LENGTH ];
