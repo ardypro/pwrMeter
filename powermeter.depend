@@ -1,0 +1,71 @@
+# depslib dependency file v1.0
+1386146489 source:e:\repo\git\ongithub\pwrmeter\powermeter.ino
+	<Arduino.h>
+	"pwrMeter.h"
+	"pwrMeterEx.h"
+	"SoftwareSerial.h"
+
+1371033101 p:\portable app\arduinoide\codeblocks\arduino\hardware\arduino\cores\arduino\arduino.h
+	<stdlib.h>
+	<string.h>
+	<math.h>
+	<avr/pgmspace.h>
+	<avr/io.h>
+	<avr/interrupt.h>
+	"binary.h"
+	"WCharacter.h"
+	"WString.h"
+	"HardwareSerial.h"
+	"pins_arduino.h"
+
+1362986950 p:\portable app\arduinoide\codeblocks\arduino\hardware\arduino\cores\arduino\binary.h
+
+1362986950 p:\portable app\arduinoide\codeblocks\arduino\hardware\arduino\cores\arduino\wcharacter.h
+	<ctype.h>
+
+1371033133 p:\portable app\arduinoide\codeblocks\arduino\hardware\arduino\cores\arduino\wstring.h
+	<stdlib.h>
+	<string.h>
+	<ctype.h>
+	<avr/pgmspace.h>
+
+1362986950 p:\portable app\arduinoide\codeblocks\arduino\hardware\arduino\cores\arduino\hardwareserial.h
+	<inttypes.h>
+	"Stream.h"
+	"USBAPI.h"
+
+1371032829 p:\portable app\arduinoide\codeblocks\arduino\hardware\arduino\cores\arduino\stream.h
+	<inttypes.h>
+	"Print.h"
+
+1362986950 p:\portable app\arduinoide\codeblocks\arduino\hardware\arduino\cores\arduino\print.h
+	<inttypes.h>
+	<stdio.h>
+	"WString.h"
+	"Printable.h"
+
+1362986950 p:\portable app\arduinoide\codeblocks\arduino\hardware\arduino\cores\arduino\printable.h
+	<new.h>
+
+1362986950 p:\portable app\arduinoide\codeblocks\arduino\hardware\arduino\cores\arduino\new.h
+	<stdlib.h>
+
+1362986950 p:\portable app\arduinoide\codeblocks\arduino\hardware\arduino\cores\arduino\usbapi.h
+
+1362986950 p:\portable app\arduinoide\codeblocks\arduino\hardware\arduino\variants\standard\pins_arduino.h
+	<avr/pgmspace.h>
+
+1386141766 e:\repo\git\ongithub\pwrmeter\pwrmeter.h
+	"HardwareSerial.h"
+	"SoftwareSerial.h"
+	"Arduino.h"
+
+1386141599 source:e:\repo\git\ongithub\pwrmeter\pwrmeter.cpp
+	"pwrMeter.h"
+
+1386146697 source:e:\repo\git\ongithub\pwrmeter\pwrmeterex.cpp
+	"pwrMeterEx.h"
+
+1386134155 e:\repo\git\ongithub\pwrmeter\pwrmeterex.h
+	<pwrMeter.h>
+

@@ -99,12 +99,7 @@ int pwrMeter::Analysis_data(void)
 {
     int ret;
     unsigned char i;
-    union crcdata
-    {
-        unsigned int word16;
-        unsigned char byte[2];
-    }
-    crcnow;
+    crcdata crcnow;
 
 
     ret = -1;
@@ -135,12 +130,7 @@ int pwrMeter::Analysis_data(void)
 int pwrMeter::read_data(void)
 {
     int ret;
-    union crcdata
-    {
-        unsigned int word16;
-        unsigned char byte[2];
-    }
-    crcnow;
+    crcdata crcnow;
 
     delay(1800);
     Tx_Buffer[0]=Read_ID;
@@ -160,13 +150,16 @@ int pwrMeter::read_data(void)
     return ret;
 }
 
-int pwrMeter::available()
+int pwrMeter::available(byte SlaveID)
 {
+    Read_ID=SlaveID;
     return read_data();
 }
 
 bool pwrMeter::readData(int &watt, float &amp, float &kwh, float &pf, float &voltage)
 {
+// TODO (Ardypro#1#): 增加超时处理
+
     int response_length = 0;
     response_length = receive_response(RX_Buffer);
 
@@ -203,5 +196,6 @@ void pwrMeter::begin(SoftwareSerial* serial, int baud)
     UART->begin(baud);
 }
 #endif
+
 
 
