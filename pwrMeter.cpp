@@ -117,10 +117,7 @@ int pwrMeter::Analysis_data(void)
                 Pf_data=(((unsigned int)(RX_Buffer[13]))<<8)|RX_Buffer[14]; //Pf_data
                 ret=1;
             }
-
         }
-
-
         Comm1.Status=0;
     }
 

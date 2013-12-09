@@ -74,25 +74,27 @@ bool pwrMeterEx::changeSlaveID(byte slaveID, byte newID)
     sendBuffer[7]=crcnow.byte[0];
 
     int ret = send_query(sendBuffer,8);
-//if
+#ifdef DEBUGGING
     Serial.print("query return\t");
     Serial.println(ret);
     Serial.println("received data");
+#endif
     ret = receive_response(receiveBuffer);
     if(ret)
     {
+        crcnow.word16=chkcrc(receiveBuffer,5);
         //有数据返回
+#ifdef DEBUGGING
         for(int i=0; i<8; i++)
         {
             Serial.println(receiveBuffer[i]);
 
         }
 
-        crcnow.word16=chkcrc(receiveBuffer,5);
         Serial.println("CRC of data received");
         Serial.println(crcnow.byte[1]);
         Serial.println(crcnow.byte[0]);
-
+#endif
         if((receiveBuffer[0]==slaveID)&& (receiveBuffer[5]==crcnow.byte[1]) && (receiveBuffer[6]==crcnow.byte[0]))
         {
             int high;
@@ -126,5 +128,7 @@ bool pwrMeterEx::changeSlaveID(byte slaveID, byte newID)
         }
     }
     else
+    {
         return false ;
+    }
 }
