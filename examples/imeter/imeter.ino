@@ -12,7 +12,7 @@ float Kwh=0;
 float Pf=0;
 float Voltage=0;
 
-SoftwareSerial mySerial(10, 11); // RX, TX, 本例使用软串口跟485通信
+SoftwareSerial mySerial(2, 3); // RX, TX, 本例使用软串口跟485通信
                                  // 使用软串口跟485通信的话，需要屏蔽pwrMeter.h中的宏定义#define HARDSERIAL
                                  // 注意不是所有的引脚都支持软串口，定义前需要查看资料
 
@@ -29,10 +29,14 @@ void setup()
 void loop()
 {
 
-    if(meter.available()>0)     // 有数据可供读取
+    if(meter.available(2)>0)     // 有数据可供读取
     {
+        Serial.println("has data");
+
         if(meter.readData(Watt,Amp,Kwh,Pf,Voltage)) // 一次性读入所有的电量数据
         {
+            Serial.println("reading data");
+            
             Serial.println();
             Serial.print("Voltage: \t");
             Serial.println(Voltage);
