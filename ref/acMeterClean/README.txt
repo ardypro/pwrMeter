@@ -1,0 +1,1 @@
+这是从acMeter original修改来的版本，去掉了不用的那些方法
