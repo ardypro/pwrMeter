@@ -8,8 +8,12 @@
       最后修改：         2013-12-17
 
 
-      适用范围：         第二期电量模块
-                         没有采用官方的leiweiClient网卡驱动，而是采用的更加精简的lwSimpleHTTPClient，更加适合mini+W5100
+      适用范围：         第二期电量模块；
+
+                         *****非电量模块的话，只支持每次上传一个数据，而不支持批量上传。*****
+
+                         本程序没有采用官方的leiweiClient网卡驱动，而是采用的更加精简的lwSimpleHTTPClient，
+                         更加适合mini+W5100/5500系列硬件
 
 */
 
@@ -19,140 +23,57 @@
 // LeWei AC Power Meter (ZongBiao60A)trail syccess 2013.06.30 18:50pm
 // 4 Parameter: watt / kwh / Amp / Voltage / Pf
 
-/* FIXME: not yet being used */
-unsigned long interframe_delay = 2;  /* Modbus t3.5 = 2 ms */
-
-/*
-* preset_multiple_registers: Modbus function 16. Write the data from an
- * array into the holding registers of a slave.
- * INPUTS
- * slave: modbus slave id number
- * start_addr: address of the slave's first register (+1)
- * reg_count: number of consecutive registers to preset
- * data: array of words (ints) with the data to write into the slave
- * RETURNS: the number of bytes received as response on success, or
- *         0 if no bytes received (i.e. response timeout)
- *        -1 to -4 (modbus exception code)
- *        -5 for other errors (port error, etc.).
- */
-
-int preset_multiple_registers(int slave, int start_addr,
-                              int reg_count, int *data);
-
-/*
-* read_holding_registers: Modbus function 3. Read the holding registers
- * in a slave and put the data into an array
- * INPUTS
- * slave: modbus slave id number
- * start_addr: address of the slave's first register (+1)
- * count: number of consecutive registers to read
- * dest: array of words (ints) on which the read data is to be stored
- * dest_size: size of the array, which should be at least 'count'
- * RETURNS: the number of bytes received as response on success, or
- *         0 if no valid response received (i.e. response timeout, bad crc)
- *        -1 to -4 (modbus exception code)
- *        -5 for other errors (port error, etc.).
- */
-
-int read_holding_registers(int slave, int start_addr, int count,
-                           int *dest, int dest_size);
-
-
-/*
-   open.lewei50.com  sensor  client
- */
-
-
 
 #include <SPI.h>
 #include <Ethernet.h>
 #include "lwPowermeterOverHTTP.h"
 
-#define USERKEY          "029b3884b91e4d00b514158ba1e2ac57" // replace your key here
-#define LW_GATEWAY       "01"
-#define ACTIVE_SLAVE_ID  1
+#define USERKEY          "029b3884b91e4d00b514158ba1e2ac57" // 使用你自己的USERKEY
+#define LW_GATEWAY       "01"                               //网关
+#define ACTIVE_SLAVE_ID  1                                  //电量模块中485的slaveid，默认为1
+
 
 lwPowermeterOverHTTP *hClient;
 
 
 void setup()
 {
-
-    // start serial port:
     Serial.begin(4800);
     hClient = new lwPowermeterOverHTTP(USERKEY, LW_GATEWAY);
-
+    //一直获取DHCP直到成功，也可以在获取DHCP失败之后，调用重载的initialize()，设置固定的IP
+    while (!hClient->initialize())
+    {
+        delay(2000);
+    }
 }
 
 /* Modbus para */
-int retval;
-int tt[30];  //int changed to unsigned int
+int tt[8];  //int changed to unsigned int //原来是30
 
 void loop()
 {
+    read_holding_registers(ACTIVE_SLAVE_ID, 0x49, 6, tt, 1); // 1:5,2:7,3:9
 
-    int i;
-    /* example, this will write some data in the first 10 registers of slave 1  */
-    //                retval = preset_multiple_registers(1,1,10, data);
+    int  Voltage  = tt[0] / 100;
+    float  Amp = tt[1] ;
+    Amp = Amp / 1000;
+    int Watt = tt[2];
 
-    //                data[0] = retval;
-    //                data[1]++;
-    //                data[8]=0xdead;
-    //                data[9] = 0xbeaf;
-    //                delay(500);
-    //int read_holding_registers(int slave, int start_addr, int count,int *dest, int dest_size);
-    //                retval = read_holding_registers(2,1, 1,tt,6);
-    retval = read_holding_registers(ACTIVE_SLAVE_ID, 0x49, 6, tt, 1); // 1:5,2:7,3:9
-    //                delay(1000);
-    //                Serial.print("receve flag=");
-    //                Serial.println(retval);
-
-
-    int     Voltage  = tt[0];
-    Voltage  = Voltage / 100;
-    float   Amp      = tt[1];
-    Amp      = Amp / 1000;
-    int     Watt     = tt[2];
-    //long y=x0*65536+x1;
-    unsigned   int Kwhh = (unsigned int)tt[3];
-    //unsigned int Kwhh = (unsigned int)65535; //test maximum
-    unsigned   int Kwhl = (unsigned int)tt[4];
-    unsigned   long kwhA = (unsigned long) Kwhh * 65536 + Kwhl;
-    //    unsigned  long kwhA = Kwhh <<16 + Kwhl;
-    float Kwh = kwhA;
-    Kwh = Kwh / 3200;
-    //    double Kwh  = kwhA / 3200; //Kwh  = kwh / 32;
-    //    int Kwh     = tt[4];
-    float Pf = tt[5];
+    float Kwh = ((unsigned long) tt[3] * 65536 + (unsigned int)tt[4]) / 3200;
+    float Pf =  tt[5] ;
     Pf = Pf / 1000;
-    float Cabon  = tt[5];
-    Cabon  = Cabon / 1000;
+
+    // bool postBatchPowerInfo(int watt, float amp, float kwh, float pf, float voltage, float temperature=0.00, float humidity=0.00);
+    hClient->postBatchPowerInfo(Watt, Amp, Kwh, Pf, Voltage);
 
 
-    Serial.print(Voltage);
-    Serial.print(Amp);
-    Serial.print(Watt);
-    Serial.print(Kwh);
-    Serial.print(Pf);
-    Serial.print(Cabon);
-
-// bool postBatchPowerInfo(int watt, float amp, float kwh, float pf, float voltage, float temperature=0.00, float humidity=0.00);
-hClient->postBatchPowerInfo(Watt, Amp, Kwh,Pf, Voltage);
-
-
-    // 4 Parameter: watt / kwh / Amp / Voltage / Pf
-
-    // lwc->append("YDL", Kwh);
-    // lwc->append("GL", Watt);
-    // lwc->append("DL", Amp);
-    // lwc->append("DY", Voltage);
-    // lwc->append("GLYS", Pf);
-    //      lwc->append("06", Cabon);
-
-
-    //lwc->send();
     delay(15000);
 }
+
+
+
+
+
 
 // this method makes a HTTP connection to the server:
 
@@ -184,7 +105,7 @@ CRC
  Note that this crc is only used for Modbus, not Modbus+ etc.
  ****************************************************************************/
 
-unsigned int crc(unsigned char *buf, int start, int cnt)
+inline unsigned int crc(unsigned char *buf, int start, int cnt)
 {
     int i, j;
     unsigned temp, temp2, flag;
@@ -268,19 +189,16 @@ void modbus_query(unsigned char *packet, size_t string_length)
 
 int send_query(unsigned char *query, size_t string_length)
 {
-
-    int i;
-
     modbus_query(query, string_length);
     string_length += 2;
 
-    for (i = 0; i < string_length; i++)
+    for (int i = 0; i < string_length; i++)
     {
         Serial.write(query[i]); //JingLi
     }
     /* without the following delay, the reading of the response might be wrong
      * apparently, */
-    delay(200);            /* FIXME: value to use? */
+    delay(200);            /* FIXME: value to use? * 原来是200/
 
     return i;           /* it does not mean that the write was succesful, though */
 }
@@ -296,10 +214,10 @@ int send_query(unsigned char *query, size_t string_length)
  * Returns:     Total number of characters received.
  ***********************************************************************/
 
-int receive_response(unsigned char *received_string)
+byte receive_response(unsigned char *received_string)
 {
 
-    int bytes_received = 0;
+    byte bytes_received = 0;
     int i = 0;
     /* wait for a response; this will block! */
     while (Serial.available() == 0)
@@ -340,7 +258,7 @@ int receive_response(unsigned char *received_string)
 
 int modbus_response(unsigned char *data, unsigned char *query)
 {
-    int response_length;
+    byte response_length;
     int i;
     unsigned int crc_calc = 0;
     unsigned int crc_received = 0;
@@ -457,10 +375,10 @@ int read_reg_response(int *dest, int dest_size, unsigned char *query)
  *
  *************************************************************************/
 
-int read_holding_registers(int slave, int start_addr, int count,
+int read_holding_registers(byte slave, byte start_addr, byte count,
                            int *dest, int dest_size)
 {
-    int function = 0x03;      /* Function: Read Holding Registers */
+    byte function = 0x03;      /* Function: Read Holding Registers */
     int ret;
 
     unsigned char packet[REQUEST_QUERY_SIZE + CHECKSUM_SIZE];
