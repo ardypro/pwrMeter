@@ -41,15 +41,12 @@ public:
   virtual ~lwSimpleHTTPClient();
   bool initialize();
   bool initialize(IPAddress localip);
-  //bool post(const char* sensor, int value);
-  //bool post(const char* sensor, double value,unsigned int digits=2);
-   bool postBatchPowerInfo(int watt, float amp, float kwh, float pf, int voltage, float temperature=0.00, float humidity=0.00);
+  bool post(const char* sensor, int value);
+  bool post(const char* sensor, double value,unsigned int digits=2);
 protected:
   void sendHeader();
-  void sendSensorname(const char* sensor);
   EthernetClient client;
 private:
-
   const char* userKey;
   const char* gateWay;
 

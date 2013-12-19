@@ -10,7 +10,7 @@
 #define LEWEISERVER "open.lewei50.com"
 #define LENTH 25
 
-#define DEBUGGING
+//#define DEBUGGING
 
 inline byte lengthOfInt(int value)
 {

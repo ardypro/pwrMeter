@@ -1,21 +1,21 @@
 /*
-      乐联第二期电量模块Arduino(TM)程序 (with DTH11 supported)
- ================================
-          by Jack Zhong (781890679@qq.com)
+      乐联第二期电量模块Arduino(TM)程序
+      ================================
+                         by Jack Zhong (781890679@qq.com)
 
-       ver：              0.9.0.0
+      ver：              0.9.0.0
 
-       最后修改：         2013-12-17
+      最后修改：         2013-12-17
 
 
-       适用范围：         第二期电量模块；
+      适用范围：         第二期电量模块；
 
-                          *****非电量模块的话，只支持每次上传一个数据，而不支持批量上传。*****
+                         *****非电量模块的话，只支持每次上传一个数据，而不支持批量上传。*****
 
-          本程序没有采用官方的leiweiClient网卡驱动，而是采用的更加精简的lwSimpleHTTPClient，
-      更加适合mini+W5100/5500系列硬件
+                         本程序没有采用官方的leiweiClient网卡驱动，而是采用的更加精简的lwSimpleHTTPClient，
+                         更加适合mini+W5100/5500系列硬件
 
- */
+*/
 
 
 
@@ -23,126 +23,55 @@
 // LeWei AC Power Meter (ZongBiao60A)trail syccess 2013.06.30 18:50pm
 // 4 Parameter: watt / kwh / Amp / Voltage / Pf
 
-//#include <simpleDHT11.h>
-
-#include "tinyDHT.h"
 
 #include <SPI.h>
 #include <Ethernet.h>
-#include "lwSimpleHTTPClient.h"
+#include "lwPowermeterOverHTTP.h"
 
 #define USERKEY          "029b3884b91e4d00b514158ba1e2ac57" // 使用你自己的USERKEY
 #define LW_GATEWAY       "01"                               //网关
 #define ACTIVE_SLAVE_ID  1                                  //电量模块中485的slaveid，默认为1
-#define DHTPIN           3
-#define QUERYINTERVAL    500
 
-lwSimpleHTTPClient *hClient;
-//simpleDHT11 dht(3);
+
+lwPowermeterOverHTTP *hClient;
 
 
 void setup()
 {
     Serial.begin(4800);
-    hClient = new lwSimpleHTTPClient(USERKEY, LW_GATEWAY);
+    hClient = new lwPowermeterOverHTTP(USERKEY, LW_GATEWAY);
     //一直获取DHCP直到成功，也可以在获取DHCP失败之后，调用重载的initialize()，设置固定的IP
     while (!hClient->initialize())
     {
-        //Serial.println("trying config DHCP again...");
-
         delay(2000);
     }
-
-    Serial.println("DHCP OK");
-
-
 }
 
 /* Modbus para */
 int tt[8];  //int changed to unsigned int //原来是30
 
-void readDHT11(float &humidity, float &temperature)
-{
-    tinyDHT dht;
-    dht.setup(DHTPIN);
-    if (  dht.readSensor(humidity, temperature) != 0)
-    {
-        humidity = 0;
-        temperature = 0;
-    }
-
-}
-
 void loop()
 {
-    /*   为什么放在这里，同样的代码，temperature和humidity就无法传递给postBatchxxx方法？
-    //  delay(dht.getMinimumSamplingPeriod());
-
-     float humidity;// = dht.getHumidity();
-     float temperature;// = dht.getTemperature();
-     delay(1000);
-     byte err;
-
-     if ( err = dht.readSensor(humidity, temperature) != 0)
-     {
-         humidity = 0;
-         temperature = 0;
-
-     }
-
-     humidity = 10;
-     temperature = 20;
-
-     // Serial.print("temperature:\t");
-     // Serial.println(temperature);
-     // Serial.print("humidity:\t");
-     // Serial.println(humidity);
-     //Serial.print(dht.getStatusString());
-     // Serial.print("\t");
-     // Serial.print(humidity, 1);
-     // Serial.print("\t\t");
-     // Serial.print(temperature, 1);
-     // Serial.print("\t\t");
-     // Serial.println(dht.toFahrenheit(temperature), 1);
-    */
-
     read_holding_registers(ACTIVE_SLAVE_ID, 0x49, 6, tt, 1); // 1:5,2:7,3:9
 
     int  Voltage  = tt[0] / 100;
     float  Amp = tt[1] ;
     Amp = Amp / 1000;
     int Watt = tt[2];
+
     float Kwh = ((unsigned long) tt[3] * 65536 + (unsigned int)tt[4]) / 3200;
     float Pf =  tt[5] ;
     Pf = Pf / 1000;
 
-    float humidity = 0;
-    float temperature = 0;
-    readDHT11(humidity,temperature);
-
-
     // bool postBatchPowerInfo(int watt, float amp, float kwh, float pf, float voltage, float temperature=0.00, float humidity=0.00);
-    hClient->postBatchPowerInfo(Watt, Amp, Kwh, Pf, Voltage, temperature, humidity);
+    hClient->postBatchPowerInfo(Watt, Amp, Kwh, Pf, Voltage);
 
 
-    delay(12000);
+    delay(15000);
 }
 
 
-void updateLED(bool online)
-{
-    if (online)
-    {
-        //亮绿灯
 
-    }
-    else
-    {
-        //亮红灯
-
-    }
-
-}
 
 
 
@@ -271,7 +200,7 @@ int send_query(unsigned char *query, size_t string_length)
      * apparently, */
     delay(200);            /* FIXME: value to use? * 原来是200/
 
-   return i;           /* it does not mean that the write was succesful, though */
+    return i;           /* it does not mean that the write was succesful, though */
 }
 
 
@@ -450,14 +379,16 @@ int read_holding_registers(byte slave, byte start_addr, byte count,
                            int *dest, int dest_size)
 {
     byte function = 0x03;      /* Function: Read Holding Registers */
-
     int ret;
+
     unsigned char packet[REQUEST_QUERY_SIZE + CHECKSUM_SIZE];
+
     if (count > MAX_READ_REGS)
     {
         count = MAX_READ_REGS;
     }
-    switch (slave)
+
+switch (slave)
     {
     case 11:
         Serial.write(0x01);
@@ -469,7 +400,7 @@ int read_holding_registers(byte slave, byte start_addr, byte count,
         Serial.write(0x45);
         Serial.write(0xDE);
         ret = 0;
-        delay(QUERYINTERVAL);
+        delay(200);
         break;
     case 12:
         Serial.write(0x02);
@@ -481,23 +412,23 @@ int read_holding_registers(byte slave, byte start_addr, byte count,
         Serial.write(0x45);
         Serial.write(0xED);
         ret = 0;
-        delay(QUERYINTERVAL);
+        delay(200);
         break;
     default:
         build_request_packet(slave, function, start_addr, count, packet);
         ret = send_query(packet, REQUEST_QUERY_SIZE);
     }
 
-    if (ret > -1)
+   // build_request_packet(slave, function, start_addr, count, packet);
+   // if (send_query(packet, REQUEST_QUERY_SIZE) > -1)
+   if (ret >-1)
     {
         ret = read_reg_response(dest, dest_size, packet);
     }
     else
     {
-
-        ret = -1;
+       ret = -1;
     }
 
     return (ret);
 }
-
