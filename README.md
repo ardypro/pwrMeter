@@ -1,4 +1,4 @@
-pwrMeter (Power Meter)
+﻿pwrMeter (Power Meter)
 ======================
 
 485电量模块的Arduino类库 
@@ -8,6 +8,7 @@ pwrMeter (Power Meter)
 注意：如果使用软串口跟电量模块的485通信的话，需要屏蔽pwrMeter.h中的宏编译指令:
       #define HARDSERIAL
       
+
 
 
 使用方法：
